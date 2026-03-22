@@ -302,10 +302,10 @@ fileInput.addEventListener("change", async (e) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("/upload", {
-      method: "POST",
-      body: formData
-    });
+    const response = await fetch("https://anonchat-u8j3.onrender.com/upload", {
+  method: "POST",
+  body: formData
+});
 
     if (!response.ok) {
       throw new Error(`Upload failed: ${response.status}`);
