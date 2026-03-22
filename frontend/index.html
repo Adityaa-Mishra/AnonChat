@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AnonChat — Talk to Strangers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       SCREEN 1 — Landing / Username Entry
+  ═══════════════════════════════════════ -->
+  <div id="screen-landing" class="screen active">
+    <div class="landing-bg">
+      <div class="noise"></div>
+      <div class="grid-lines"></div>
+    </div>
+
+    <div class="landing-content">
+      <div class="logo-block">
+        <span class="logo-icon">◈</span>
+        <h1 class="logo-text">AnonChat</h1>
+        <p class="logo-sub">Stranger. Anywhere. Now.</p>
+      </div>
+
+      <div class="online-pill" id="online-pill">
+        <span class="pulse-dot"></span>
+        <span id="online-count">0</span> online
+      </div>
+
+      <div class="entry-card">
+        <label class="entry-label" for="username-input">Choose a handle</label>
+        <div class="entry-row">
+          <input
+            id="username-input"
+            class="entry-input"
+            type="text"
+            placeholder="e.g. ghost_rider"
+            maxlength="20"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="start-btn" class="btn-primary">
+            <span>Connect</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+        <p class="entry-hint">No account needed. Zero data stored. Refresh = gone.</p>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-chip">⚡ Instant match</div>
+        <div class="feature-chip">🔒 Anonymous</div>
+        <div class="feature-chip">💬 Real-time</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SCREEN 2 — Chat
+  ═══════════════════════════════════════ -->
+  <div id="screen-chat" class="screen">
+
+    <!-- Top bar -->
+    <header class="chat-header">
+      <div class="chat-header-left">
+        <span class="logo-icon-sm">◈</span>
+        <span class="chat-logo">AnonChat</span>
+      </div>
+
+      <div class="chat-status-block">
+        <div id="status-indicator" class="status-indicator waiting">
+          <span class="status-dot"></span>
+          <span id="status-text">Finding someone…</span>
+        </div>
+        <div id="typing-indicator" class="typing-indicator hidden">
+          <span></span><span></span><span></span>
+          <span class="typing-label">typing</span>
+        </div>
+      </div>
+
+      <div class="chat-header-right">
+        <div class="online-pill-sm">
+          <span class="pulse-dot"></span>
+          <span id="online-count-chat">0</span>
+        </div>
+        <button id="next-btn" class="btn-next" title="Skip to next stranger">
+          Next ↻
+        </button>
+      </div>
+    </header>
+
+    <!-- Messages area -->
+    <main id="messages" class="messages-area">
+      <div class="messages-inner" id="messages-inner">
+        <!-- Messages injected here by JS -->
+        <div class="system-msg" id="welcome-msg">
+          You are anonymous. Be kind. 👋
+        </div>
+      </div>
+    </main>
+
+    <!-- Input bar -->
+    <footer class="chat-footer">
+      <div class="input-row">
+        <input
+          id="msg-input"
+          class="msg-input"
+          type="text"
+          placeholder="Type a message…"
+          maxlength="500"
+          autocomplete="off"
+          disabled
+        />
+        <input
+          id="file-input"
+          type="file"
+          accept="image/*,video/*"
+          style="display: none;"
+        />
+        <button id="file-btn" class="btn-file" title="Send photo/video" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        </button>
+        <button id="send-btn" class="btn-send" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        </button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Socket.io client (served by the server automatically) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- App logic -->
+  <script src="app.js"></script>
+</body>
+</html>
