@@ -32,7 +32,7 @@ let isConnected   = false;   // paired with someone
 let typingTimeout = null;
 
 // ── Socket connection ─────────────────────────────────
-const socket = io("https://anonchat-u8j3.onrender.com");
+const socket = io();
 // ── Helpers ───────────────────────────────────────────
 
 /** Switch visible screen */
