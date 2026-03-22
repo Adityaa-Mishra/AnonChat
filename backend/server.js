@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────
-//  server/server.js  –  Entry point
+//  server/server.js  –  Entry point (FIXED)
 // ─────────────────────────────────────────────
 
 const express = require("express");
@@ -7,15 +7,27 @@ const http = require("http");
 const path = require("path");
 const { Server } = require("socket.io");
 const multer = require("multer");
+const cors = require("cors");
+
 const registerSocketHandlers = require("./socket/index");
 
 const app = express();
 const server = http.createServer(app);
+
+// ✅ FIXED Socket.io CORS + transports
 const io = new Server(server, {
-  cors: { origin: "*" }, // allow all origins for local dev
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  transports: ["websocket", "polling"]
 });
 
 const PORT = process.env.PORT || 3000;
+
+// ✅ FIXED Express CORS
+app.use(cors());
+app.use(express.json());
 
 // ── File upload configuration ──────────────────────────
 const storage = multer.diskStorage({
@@ -23,8 +35,11 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, "../uploads"));
   },
   filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
+    const uniqueName =
+      Date.now() +
+      "-" +
+      Math.round(Math.random() * 1e9) +
+      path.extname(file.originalname);
     cb(null, uniqueName);
   }
 });
@@ -32,50 +47,51 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB
   },
   fileFilter: (req, file, cb) => {
-    // Allow only images and videos
-    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+    if (
+      file.mimetype.startsWith("image/") ||
+      file.mimetype.startsWith("video/")
+    ) {
       cb(null, true);
     } else {
-      cb(new Error('Only image and video files are allowed!'), false);
+      cb(new Error("Only image and video files are allowed!"), false);
     }
   }
 });
 
-// ── Serve static frontend files ──────────────
-// Points to the /frontend folder at the project root
+// ── Serve frontend (only useful locally / same server) ──
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// ── Serve uploaded files ─────────────────────
+// ── Serve uploaded files ────────────────────────────────
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// ── File upload endpoint ─────────────────────
+// ── File upload endpoint ────────────────────────────────
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  // Return file info to client
+  // ✅ FIXED: Full backend URL for Netlify frontend
   res.json({
     filename: req.file.filename,
     originalName: req.file.originalname,
     mimetype: req.file.mimetype,
     size: req.file.size,
-    url: `/uploads/${req.file.filename}`
+    url: `https://anonchat-u8j3.onrender.com/uploads/${req.file.filename}`
   });
 });
 
-// ── Catch-all: serve index.html ──────────────
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+// ── Health check route (optional but useful) ────────────
+app.get("/", (req, res) => {
+  res.send("AnonChat backend is running 🚀");
 });
 
-// ── Register all Socket.io handlers ──────────
+// ── Register all Socket.io handlers ────────────────────
 registerSocketHandlers(io);
 
-// ── Start server ──────────────────────────────
+// ── Start server ───────────────────────────────────────
 server.listen(PORT, () => {
-  console.log(`\n🚀  AnonChat server running at http://localhost:${PORT}\n`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
