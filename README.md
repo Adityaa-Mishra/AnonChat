@@ -4,7 +4,7 @@
 
 AnonChat is a minimalist, anonymous chat application that connects you with random strangers for instant conversations. Built with modern web technologies, it offers a clean, distraction-free chatting experience with real-time messaging and file sharing capabilities.
 
-![AnonChat Preview](https://via.placeholder.com/800x400/0a0a0f/00e5a0?text=AnonChat+Preview)
+![AnonChat Preview](https://echostranger.netlify.app/)
 
 ## ✨ Features
 
@@ -120,7 +120,7 @@ npm run dev
 The app is ready for production deployment on any Node.js hosting service (Heroku, DigitalOcean, etc.).
 
 ### Environment Variables
-- `PORT` - Server port (default: 3000)
+NIL
 
 ## 🤝 Contributing
 
