@@ -5,6 +5,7 @@
 const express = require("express");
 const http = require("http");
 const path = require("path");
+const fs = require("fs");
 const { Server } = require("socket.io");
 const multer = require("multer");
 const cors = require("cors");
@@ -30,9 +31,14 @@ app.use(cors());
 app.use(express.json());
 
 // ── File upload configuration ──────────────────────────
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads"));
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueName =
@@ -68,22 +74,31 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // ── File upload endpoint ────────────────────────────────
-app.post("/upload", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
+app.post("/upload", (req, res) => {
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      const msg = err.message || "Upload failed";
+      const code = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+      return res.status(code).json({ error: msg });
+    }
 
-  const baseUrl =
-    process.env.PUBLIC_BASE_URL ||
-    `${req.protocol}://${req.get("host")}`;
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
 
-  res.json({
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    mimetype: req.file.mimetype,
-    size: req.file.size,
-    url: `${baseUrl}/uploads/${req.file.filename}`
+    const baseUrl =
+      process.env.PUBLIC_BASE_URL ||
+      `${req.protocol}://${req.get("host")}`;
+
+    res.json({
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      url: `${baseUrl}/uploads/${req.file.filename}`
+    });
   });
+});
 });
 
 // ── Health check route (optional but useful) ────────────

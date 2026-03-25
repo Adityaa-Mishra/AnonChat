@@ -464,7 +464,12 @@ fileInput.addEventListener("change", async (e) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Upload failed: ${response.status}`);
+      let detail = "";
+      try {
+        const err = await response.json();
+        detail = err.error ? ` - ${err.error}` : "";
+      } catch (_) {}
+      throw new Error(`Upload failed: ${response.status}${detail}`);
     }
 
     const fileData = await response.json();
