@@ -317,6 +317,17 @@ html, body {
 .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 .typing-label { font-family: var(--font-mono); margin-left: 4px; }
 
+.chat-timer {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  padding: 2px 10px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.03);
+}
+.chat-timer.hidden { display: none; }
+
 .chat-header-right {
   display: flex;
   align-items: center;
@@ -432,6 +443,53 @@ html, body {
   max-width: 100%;
   box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
+.bubble-text { }
+.bubble-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.bubble-wrapper.own .bubble-row  { justify-content: flex-end; }
+.bubble-wrapper.them .bubble-row { justify-content: flex-start; }
+.reply-preview {
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  border-left: 3px solid var(--accent2);
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  width: 100%;
+}
+.reply-preview .reply-user {
+  color: var(--text);
+  font-weight: 700;
+}
+.bubble-actions {
+  display: flex;
+  gap: 6px;
+  align-self: center;
+}
+.reply-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text-dim);
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.reply-btn:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  background: rgba(124,92,252,0.08);
+}
 .bubble-wrapper.own .bubble {
   background: var(--own-bubble);
   border: 1px solid rgba(124,92,252,0.3);
@@ -489,6 +547,54 @@ html, body {
   padding: 14px 20px;
   background: var(--bg2);
   border-top: 1px solid var(--border);
+}
+.reply-bar {
+  max-width: 760px;
+  margin: 0 auto 8px;
+  padding: 8px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.reply-bar.hidden { display: none; }
+.reply-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.reply-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+.reply-text {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 520px;
+}
+.reply-cancel {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.reply-cancel:hover {
+  border-color: var(--accent3);
+  color: var(--accent3);
+  background: rgba(255,77,109,0.08);
 }
 
 .input-row {

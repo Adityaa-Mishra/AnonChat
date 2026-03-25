@@ -77,6 +77,7 @@
           <span class="status-dot"></span>
           <span id="status-text">Finding someone…</span>
         </div>
+        <div id="chat-timer" class="chat-timer hidden">15:00</div>
         <div id="typing-indicator" class="typing-indicator hidden">
           <span></span><span></span><span></span>
           <span class="typing-label">typing</span>
@@ -106,6 +107,13 @@
 
     <!-- Input bar -->
     <footer class="chat-footer">
+      <div id="reply-bar" class="reply-bar hidden">
+        <div class="reply-info">
+          <div class="reply-label">Replying to <span id="reply-user">Stranger</span></div>
+          <div id="reply-text" class="reply-text"></div>
+        </div>
+        <button id="reply-cancel" class="reply-cancel" title="Cancel reply">Cancel</button>
+      </div>
       <div class="input-row">
         <input
           id="msg-input"

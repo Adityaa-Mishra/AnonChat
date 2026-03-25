@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────
-//  server/server.js  –  Entry point (FIXED)
+//  server/server.js  –  Entry point
 // ─────────────────────────────────────────────
 
 const express = require("express");
@@ -14,7 +14,7 @@ const registerSocketHandlers = require("./socket/index");
 const app = express();
 const server = http.createServer(app);
 
-// ✅ FIXED Socket.io CORS + transports
+// Socket.io CORS + transports
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -25,7 +25,7 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// ✅ FIXED Express CORS
+//Express CORS
 app.use(cors());
 app.use(express.json());
 

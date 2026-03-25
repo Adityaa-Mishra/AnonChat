@@ -25,14 +25,31 @@ const fileBtn       = document.getElementById("file-btn");
 const onlineCountEl     = document.getElementById("online-count");
 const onlineCountChatEl = document.getElementById("online-count-chat");
 
+const replyBar      = document.getElementById("reply-bar");
+const replyUserEl   = document.getElementById("reply-user");
+const replyTextEl   = document.getElementById("reply-text");
+const replyCancelBtn = document.getElementById("reply-cancel");
+const chatTimerEl   = document.getElementById("chat-timer");
+
 // ── State ─────────────────────────────────────────────
 let myUsername    = "";
 let strangerName  = "";
 let isConnected   = false;   // paired with someone
 let typingTimeout = null;
+let replyContext  = null;
+let chatTimerInterval = null;
+let chatEndsAt = null;
 
 // ── Socket connection ─────────────────────────────────
-const socket = io();
+const SERVER_URL =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:3000"
+    : "https://anonchat-u8j3.onrender.com";
+
+const socket = io(SERVER_URL, {
+  transports: ["websocket", "polling"]
+});
 // ── Helpers ───────────────────────────────────────────
 
 /** Switch visible screen */
@@ -42,7 +59,7 @@ function showScreen(name) {
 }
 
 /** Append a bubble message to the chat */
-function appendMessage({ username, text, own }) {
+function appendMessage({ username, text, replyTo, own }) {
   const wrapper = document.createElement("div");
   wrapper.className = `bubble-wrapper ${own ? "own" : "them"}`;
 
@@ -52,16 +69,32 @@ function appendMessage({ username, text, own }) {
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.textContent = text;
+  if (replyTo) {
+    bubble.appendChild(buildReplyPreview(replyTo));
+  }
+  const textEl = document.createElement("div");
+  textEl.className = "bubble-text";
+  textEl.textContent = text;
+  bubble.appendChild(textEl);
 
   wrapper.appendChild(usernameEl);
-  wrapper.appendChild(bubble);
+  const row = document.createElement("div");
+  row.className = "bubble-row";
+  row.appendChild(bubble);
+
+  const actions = document.createElement("div");
+  actions.className = "bubble-actions";
+  actions.appendChild(createReplyButton({ username, text }));
+  row.appendChild(actions);
+
+  wrapper.appendChild(row);
+
   messagesInner.appendChild(wrapper);
   scrollToBottom();
 }
 
 /** Append a file message to the chat */
-function appendFileMessage({ username, filename, originalName, mimetype, size, url, own }) {
+function appendFileMessage({ username, filename, originalName, mimetype, size, url, replyTo, own }) {
   const wrapper = document.createElement("div");
   wrapper.className = `bubble-wrapper ${own ? "own" : "them"}`;
 
@@ -86,6 +119,10 @@ function appendFileMessage({ username, filename, originalName, mimetype, size, u
     mediaElement.preload = "metadata";
   }
 
+  if (replyTo) {
+    bubble.appendChild(buildReplyPreview(replyTo));
+  }
+
   if (mediaElement) {
     bubble.appendChild(mediaElement);
   }
@@ -108,7 +145,17 @@ function appendFileMessage({ username, filename, originalName, mimetype, size, u
   bubble.appendChild(fileInfo);
 
   wrapper.appendChild(usernameEl);
-  wrapper.appendChild(bubble);
+  const row = document.createElement("div");
+  row.className = "bubble-row";
+  row.appendChild(bubble);
+
+  const actions = document.createElement("div");
+  actions.className = "bubble-actions";
+  actions.appendChild(createReplyButton({ username, text: `[File] ${originalName}` }));
+  row.appendChild(actions);
+
+  wrapper.appendChild(row);
+
   messagesInner.appendChild(wrapper);
   scrollToBottom();
 }
@@ -159,6 +206,87 @@ function clearMessages() {
   }
 }
 
+function startChatTimer(durationMs) {
+  stopChatTimer();
+  chatEndsAt = Date.now() + durationMs;
+  chatTimerEl.classList.remove("hidden");
+  tickChatTimer();
+  chatTimerInterval = setInterval(tickChatTimer, 1000);
+}
+
+function stopChatTimer() {
+  if (chatTimerInterval) clearInterval(chatTimerInterval);
+  chatTimerInterval = null;
+  chatEndsAt = null;
+  chatTimerEl.classList.add("hidden");
+  chatTimerEl.textContent = "15:00";
+}
+
+function tickChatTimer() {
+  if (!chatEndsAt) return;
+  const remaining = Math.max(0, chatEndsAt - Date.now());
+  const totalSeconds = Math.floor(remaining / 1000);
+  const mins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const secs = String(totalSeconds % 60).padStart(2, "0");
+  chatTimerEl.textContent = `${mins}:${secs}`;
+  if (remaining <= 0) {
+    stopChatTimer();
+  }
+}
+
+function buildReplyPreview(replyTo) {
+  const wrap = document.createElement("div");
+  wrap.className = "reply-preview";
+
+  const user = document.createElement("div");
+  user.className = "reply-user";
+  user.textContent = replyTo.username || "Anon";
+
+  const text = document.createElement("div");
+  text.textContent = replyTo.text || "";
+
+  wrap.appendChild(user);
+  wrap.appendChild(text);
+  return wrap;
+}
+
+function createReplyButton({ username, text }) {
+  const btn = document.createElement("button");
+  btn.className = "reply-btn";
+  btn.title = "Reply";
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h6");
+  svg.appendChild(path);
+  btn.appendChild(svg);
+  btn.addEventListener("click", () => {
+    setReplyContext({ username, text });
+  });
+  return btn;
+}
+
+function setReplyContext(ctx) {
+  replyContext = ctx;
+  replyUserEl.textContent = ctx.username || "Anon";
+  replyTextEl.textContent = ctx.text || "";
+  replyBar.classList.remove("hidden");
+}
+
+function clearReplyContext() {
+  replyContext = null;
+  replyBar.classList.add("hidden");
+  replyUserEl.textContent = "";
+  replyTextEl.textContent = "";
+}
+
 // ── Socket events ─────────────────────────────────────
 
 /** Server tells us how many users are online */
@@ -173,6 +301,8 @@ socket.on("waiting", () => {
   setStatus("waiting", "Finding someone…");
   setInputEnabled(false);
   appendSystem("⏳ Looking for a stranger…");
+  clearReplyContext();
+  stopChatTimer();
 });
 
 /** Successfully paired */
@@ -183,18 +313,21 @@ socket.on("matched", ({ strangerUsername }) => {
   setStatus("connected", `Chatting with ${strangerName}`);
   setInputEnabled(true);
   appendSystem(`🎉 Connected with ${strangerName}! Say hi.`);
+  clearReplyContext();
+  startChatTimer(15 * 60 * 1000);
 });
 
 /** Incoming message from stranger */
-socket.on("message", ({ username, text }) => {
-  appendMessage({ username, text, own: false });
+socket.on("message", ({ username, text, replyTo }) => {
+  appendMessage({ username, text, replyTo, own: false });
   // Hide typing indicator when message received
   typingIndicator.classList.add("hidden");
 });
 
 /** Server echoes our own sent message back for confirmation */
-socket.on("message_sent", ({ username, text }) => {
-  appendMessage({ username, text, own: true });
+socket.on("message_sent", ({ username, text, replyTo }) => {
+  appendMessage({ username, text, replyTo, own: true });
+  clearReplyContext();
 });
 
 /** Incoming file message from stranger */
@@ -220,6 +353,18 @@ socket.on("stranger_left", () => {
   setStatus("disconnected", "Stranger left");
   appendSystem(`👋 ${strangerName || "Stranger"} has left. Finding next…`);
   // Server will auto re-queue us — wait for "waiting" or "matched" event
+  clearReplyContext();
+  stopChatTimer();
+});
+
+socket.on("chat_timeout", () => {
+  isConnected = false;
+  typingIndicator.classList.add("hidden");
+  setInputEnabled(false);
+  setStatus("waiting", "Finding someone…");
+  appendSystem("⏰ Chat ended after 15 minutes. Finding someone new…");
+  clearReplyContext();
+  stopChatTimer();
 });
 
 // ── UI Interactions ───────────────────────────────────
@@ -252,7 +397,7 @@ msgInput.addEventListener("keydown", (e) => {
 function sendMessage() {
   const text = msgInput.value.trim();
   if (!text || !isConnected) return;
-  socket.emit("message", { text });
+  socket.emit("message", { text, replyTo: replyContext });
   msgInput.value = "";
 
   // Stop typing indicator for self
@@ -276,6 +421,12 @@ nextBtn.addEventListener("click", () => {
   setInputEnabled(false);
   setStatus("waiting", "Finding someone…");
   appendSystem("⏭ Skipped. Looking for the next stranger…");
+  clearReplyContext();
+  stopChatTimer();
+});
+
+replyCancelBtn.addEventListener("click", () => {
+  clearReplyContext();
 });
 
 /** File button */
@@ -302,10 +453,10 @@ fileInput.addEventListener("change", async (e) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("https://anonchat-u8j3.onrender.com/upload", {
-  method: "POST",
-  body: formData
-});
+    const response = await fetch(`${SERVER_URL}/upload`, {
+      method: "POST",
+      body: formData
+    });
 
     if (!response.ok) {
       throw new Error(`Upload failed: ${response.status}`);
