@@ -99,7 +99,6 @@ app.post("/upload", (req, res) => {
     });
   });
 });
-});
 
 // ── Health check route (optional but useful) ────────────
 app.get("/", (req, res) => {
