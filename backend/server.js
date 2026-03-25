@@ -73,13 +73,16 @@ app.post("/upload", upload.single("file"), (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
 
-  // ✅ FIXED: Full backend URL for Netlify frontend
+  const baseUrl =
+    process.env.PUBLIC_BASE_URL ||
+    `${req.protocol}://${req.get("host")}`;
+
   res.json({
     filename: req.file.filename,
     originalName: req.file.originalname,
     mimetype: req.file.mimetype,
     size: req.file.size,
-    url: `https://anonchat-u8j3.onrender.com/uploads/${req.file.filename}`
+    url: `${baseUrl}/uploads/${req.file.filename}`
   });
 });
 

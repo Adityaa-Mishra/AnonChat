@@ -41,11 +41,16 @@ let chatTimerInterval = null;
 let chatEndsAt = null;
 
 // ── Socket connection ─────────────────────────────────
-const SERVER_URL =
+const isLocalHost =
   window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "http://localhost:3000"
-    : "https://anonchat-u8j3.onrender.com";
+  window.location.hostname === "127.0.0.1";
+const isLocalNet = /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(
+  window.location.hostname
+);
+const SERVER_URL =
+  isLocalHost || isLocalNet
+    ? `${window.location.protocol}//${window.location.hostname}:3000`
+    : (window.ANONCHAT_SERVER_URL || "https://anonchat-u8j3.onrender.com");
 
 const socket = io(SERVER_URL, {
   transports: ["websocket", "polling"]
